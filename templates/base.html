@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Predicción FGR</title>
+
+  <!-- Fuente personalizada -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Nunito', 'sans-serif'],
+          },
+          colors: {
+            primary: '#1e40af',  // azul
+            secondary: '#be185d' // rosa
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-gray-50 text-gray-800 font-sans">
+  <!-- Navbar -->
+  <nav class="bg-white shadow-md py-4">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
+      <a href="/" class="text-xl font-bold text-primary mb-2 md:mb-0">
+        Predicción de Peso Fetal - FGR
+      </a>
+      <div class="flex space-x-4 text-sm font-medium">
+        <a href="/" class="text-gray-700 hover:text-primary">Inicio</a>
+        <a href="/training" class="text-gray-700 hover:text-primary">Entrenar modelos</a>
+        <a href="/predict_individual" class="text-gray-700 hover:text-primary">Predicción individual</a>
+        <a href="/predict_batch" class="text-gray-700 hover:text-primary">Predicción por lotes</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mensajes Flash -->
+  <div class="max-w-6xl mx-auto px-4 mt-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="space-y-2">
+          {% for category, message in messages %}
+            <div class="p-3 rounded bg-{{ 'red' if category == 'error' else 'green' }}-100 text-{{ 'red' if category == 'error' else 'green' }}-800">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Contenido principal -->
+  <main class="mt-6">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-100 mt-16 py-6">
+    <div class="max-w-7xl mx-auto text-center text-sm text-gray-600">
+      &copy; 2025 Predicción FGR. Todos los derechos reservados.
+    </div>
+  </footer>
+</body>
+</html>

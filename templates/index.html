@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-pink-100">
+  <!-- Sección superior: Fondo y bienvenida -->
+  <div class="relative h-80 w-full overflow-hidden rounded-b-3xl shadow-lg">
+    <img src="static\embarazada.jpg" alt="Fondo Embarazada"
+         class="w-full h-full object-cover brightness-75">
+    <div class="absolute inset-0 flex flex-col justify-center items-center text-white text-center px-4">
+      <img src="static\img\logo.png" alt="Logo FGR"
+           class="w-24 mb-4 drop-shadow-lg">
+      <h1 class="text-4xl md:text-5xl font-bold drop-shadow-md">Bienvenido a la Aplicación FGR</h1>
+      <p class="mt-2 text-lg md:text-xl font-light">
+        Esta aplicación utiliza modelos de aprendizaje automático para predecir el riesgo de <strong>RCF</strong>.
+      </p>
+    </div>
+  </div>
+
+  <!-- Tarjetas de acción -->
+  <div class="max-w-6xl mx-auto mt-12 px-6 grid grid-cols-1 md:grid-cols-2 gap-10 pb-12">
+    <!-- Card: Entrenar -->
+      <div class="flex flex-col items-center">
+        <img src="static\img\modelo.png" alt="Entrenar Modelos"
+             class="w-20 h-20 mb-4">
+        <h2 class="text-2xl font-semibold text-primary group-hover:text-primary">Entrenar Modelos</h2>
+        <p class="mt-2 text-gray-600 text-center">
+          Carga tu conjunto de datos y entrena diferentes modelos para la predicción del crecimiento fetal.
+        </p>
+      </div>
+    </a>
+
+    <!-- Card: Predecir -->
+      <div class="flex flex-col items-center">
+        <img src="static\img\prediccion.png" alt="Realizar Predicción"
+             class="w-20 h-20 mb-4">
+        <h2 class="text-2xl font-semibold text-secondary group-hover:text-secondary">Realizar Predicción</h2>
+        <p class="mt-2 text-gray-600 text-center">
+          Introduce nuevos datos y obtén la predicción en tiempo real del modelo entrenado.
+        </p>
+      </div>
+    </a>
+  </div>
+</div>
+{% endblock %}
+
+

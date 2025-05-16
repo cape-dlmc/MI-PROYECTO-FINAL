@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-5xl mx-auto mt-10 bg-white p-8 shadow-xl rounded-xl">
+  <h2 class="text-3xl font-bold text-primary mb-6">Predicción por Lotes</h2>
+
+  <form method="POST" enctype="multipart/form-data" class="space-y-4">
+    <label for="model" class="block text-gray-700 font-medium">Selecciona un modelo:</label>
+    <select name="model" class="w-full border px-4 py-2 rounded-lg">
+      <option value="logistic_regression">Regresión Logística</option>
+      <option value="svm">SVM</option>
+      <option value="ann">Red Neuronal</option>
+      <option value="fcm">FCM</option>
+    </select>
+
+    <label for="file" class="block text-gray-700 font-medium">Archivo (.xlsx):</label>
+    <input type="file" name="file" accept=".xlsx" required class="w-full">
+
+    <button type="submit" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-blue-800">Subir y Predecir</button>
+  </form>
+
+  {% if results %}
+    <div class="mt-6">
+      <h3 class="text-xl font-semibold text-secondary">Resultados:</h3>
+      <p class="mt-2 text-gray-700"><strong>Exactitud:</strong> {{ results.accuracy }}%</p>
+
+      <div class="mt-4 overflow-x-auto">
+        <table class="table-auto w-full border-collapse border border-gray-300">
+          <thead>
+            <tr class="bg-gray-100">
+              <th class="border px-4 py-2"></th>
+              <th class="border px-4 py-2">Predicción 0</th>
+              <th class="border px-4 py-2">Predicción 1</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="border px-4 py-2">Real 0</td>
+              <td class="border px-4 py-2">{{ results.confusion_matrix[0][0] }}</td>
+              <td class="border px-4 py-2">{{ results.confusion_matrix[0][1] }}</td>
+            </tr>
+            <tr>
+              <td class="border px-4 py-2">Real 1</td>
+              <td class="border px-4 py-2">{{ results.confusion_matrix[1][0] }}</td>
+              <td class="border px-4 py-2">{{ results.confusion_matrix[1][1] }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {% if results.image_path %}
+        <div class="mt-6">
+          <h4 class="text-lg font-medium text-gray-700 mb-2">Matriz de Confusión (Gráfico):</h4>
+          <img src="/{{ results.image_path }}" alt="Matriz de Confusión"
+               class="border rounded-lg shadow-md max-w-full">
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

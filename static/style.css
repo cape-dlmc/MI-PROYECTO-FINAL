@@ -1,0 +1,253 @@
+:root {
+    --primary-color: #007bff;  /* Un azul más moderno */
+    --secondary-color: #6c757d; /* Gris para contrastes suaves */
+    --accent-color: #28a745;   /* Verde para acciones importantes */
+    --background-color: #f8f9fa;
+    --card-background: #ffffff;
+    --text-color: #343a40;      /* Gris oscuro para texto principal */
+    --light-text-color: #6c757d; /* Gris claro para texto secundario */
+    --shadow-color: rgba(0, 0, 0, 0.15);
+    --border-radius: 0.5rem;   /* Bordes redondeados un poco más */
+    --transition-speed: 0.2s;
+    --font-family: 'Nunito', sans-serif; /* Fuente moderna y legible */
+    --header-font-weight: 700;
+    --form-label-color: #495057;
+    --form-input-border-color: #ced4da;
+    --form-input-focus-border: #80bdff;
+    --form-input-focus-shadow: rgba(0, 123, 255, 0.25);
+    --table-header-bg: #007bff;
+    --table-header-text: #fff;
+    --alert-success-bg: #d4edda;
+    --alert-success-text: #155724;
+    --alert-danger-bg: #f8d7da;
+    --alert-danger-text: #721c24;
+    --alert-info-bg: #d1ecf1;
+    --alert-info-text: #0c5460;
+}
+
+ /* General */
+ body {
+    font-family: var(--font-family);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    line-height: 1.6; /* Mejora la legibilidad */
+}
+
+ /* Navbar */
+ nav {
+    background-color: var(--primary-color);
+    box-shadow: 0 0.125rem 0.25rem var(--shadow-color);
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+ nav a {
+    color: white;
+    text-decoration: none;
+    margin: 0 1rem;
+    font-weight: 500;
+    transition: color var(--transition-speed);
+}
+
+ nav a:hover {
+    color: var(--accent-color);
+}
+
+ nav a.active {
+    /* Puedes usar esta clase para el enlace activo, si es necesario */
+    font-weight: bold;
+}
+
+ /* Header */
+ h1, h2, h3 {
+    color: var(--primary-color);
+    font-weight: var(--header-font-weight);
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+}
+
+ /* Container */
+ .container {
+    max-width: 1200px; /* Ancho máximo para el contenido */
+    margin: 2rem auto;
+    padding: 1rem;
+}
+
+ /* Forms */
+ form {
+    background-color: var(--card-background);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: 0 0.5rem 1rem var(--shadow-color);
+    margin-bottom: 2rem;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+ form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--form-label-color);
+    font-weight: 600;
+}
+
+ form input[type="number"],
+ form input[type="file"],
+ form select {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--form-input-border-color);
+    border-radius: var(--border-radius);
+    box-shadow: inset 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.05);
+    transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+ form input:focus,
+ form select:focus {
+    border-color: var(--form-input-focus-border);
+    box-shadow: 0 0 0 0.2rem var(--form-input-focus-shadow);
+    outline: none;
+}
+
+ form button {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+    transition: background-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+ form button:hover {
+    background-color: var(--accent-color);
+    transform: translateY(-0.125rem);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
+}
+
+ /* Tables */
+ table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1.5rem;
+    background-color: var(--card-background);
+    box-shadow: 0 0.25rem 0.5rem var(--shadow-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    animation: fadeIn 0.5s ease-in;
+}
+
+ table th, table td {
+    padding: 1rem;
+    text-align: center;
+    border-bottom: 1px solid #dee2e6;
+}
+
+ table thead {
+    background-color: var(--table-header-bg);
+    color: var(--table-header-text);
+}
+
+ /* Alerts */
+ .alert {
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    border-radius: var(--border-radius);
+    box-shadow: 0 0.125rem 0.25rem var(--shadow-color);
+}
+
+ .alert-success {
+    background-color: var(--alert-success-bg);
+    color: var(--alert-success-text);
+    border: 1px solid darken(var(--alert-success-bg), 10%);
+}
+
+ .alert-danger {
+    background-color: var(--alert-danger-bg);
+    color: var(--alert-danger-text);
+    border: 1px solid darken(var(--alert-danger-bg), 10%);
+}
+
+ .alert-info {
+    background-color: var(--alert-info-bg);
+    color: var(--alert-info-text);
+    border: 1px solid darken(var(--alert-info-bg), 10%);
+}
+
+ /* Cards */
+ .card {
+    background-color: var(--card-background);
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: 0 0.25rem 0.5rem var(--shadow-color);
+    transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+ .card:hover {
+    transform: translateY(-0.25rem);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
+}
+
+ /* Footer */
+ footer {
+    text-align: center;
+    padding: 1rem;
+    margin-top: 2rem;
+    font-size: 0.9rem;
+    color: var(--light-text-color);
+    border-top: 1px solid #dee2e6;
+}
+
+ /* Animations */
+ @keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(1rem);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+ @keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+ /* Responsive Design */
+ @media (max-width: 768px) {
+    .container {
+        padding: 0.5rem;
+    }
+
+    form {
+        padding: 1.5rem;
+    }
+
+    table th, table td {
+        padding: 0.75rem;
+    }
+ }
+
+ 
+
+ 
