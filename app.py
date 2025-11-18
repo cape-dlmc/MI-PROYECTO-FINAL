@@ -11,6 +11,15 @@ from training.train_fcm import train_fcm_model
 
 app = Flask(__name__)
 app.secret_key = 'fgr-secret-key'
+# ---- Security Headers ----
+@app.after_request
+def add_security_headers(response):
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
+    response.headers["Expect-CT"] = "enforce; max-age=86400"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
+
 UPLOAD_FOLDER = 'data/uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
                         
