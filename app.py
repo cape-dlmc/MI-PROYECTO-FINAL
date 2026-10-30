@@ -1,5 +1,7 @@
 # app.py
 from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_wtf.csrf import CSRFProtect
+from werkzeug.utils import secure_filename
 import os
 
 from prediction.predict_individual import predict_single_input
@@ -10,16 +12,8 @@ from training.train_ann import train_ann_model
 from training.train_fcm import train_fcm_model
 
 app = Flask(__name__)
-app.secret_key = 'fgr-secret-key'
-# ---- Security Headers ----
-@app.after_request
-def add_security_headers(response):
-    response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
-    response.headers["Expect-CT"] = "enforce; max-age=86400"
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    return response
-
+app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(32)
+CSRFProtect(app)
 UPLOAD_FOLDER = 'data/uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
                         
@@ -57,8 +51,9 @@ def predict_batch():
     if request.method == 'POST':
         file = request.files['file']
         model = request.form['model']
-        if file.filename.endswith('.xlsx'):
-            filepath = os.path.join(UPLOAD_FOLDER, file.filename)
+        filename = secure_filename(file.filename or '')
+        if filename.lower().endswith('.xlsx'):
+            filepath = os.path.join(UPLOAD_FOLDER, filename)
             file.save(filepath)
             results = predict_from_batch(filepath, model)
             return render_template('predict_batch.html', results=results)

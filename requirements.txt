@@ -5,4 +5,5 @@ openpyxl
 joblib
 matplotlib
 seaborn
+Flask-WTF
 gunicorn

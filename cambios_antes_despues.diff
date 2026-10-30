@@ -1,0 +1,280 @@
+--- a/app.py	2026-10-30 12:28:52.267334509 +0000
++++ "proyecto/Proyecto definitivo_ANALITICA DE DATOS/app.py"	2026-10-30 12:28:55.004576944 +0000
+@@ -1,5 +1,7 @@
+ # app.py
+ from flask import Flask, render_template, request, redirect, url_for, flash
++from flask_wtf.csrf import CSRFProtect
++from werkzeug.utils import secure_filename
+ import os
+ 
+ from prediction.predict_individual import predict_single_input
+@@ -10,7 +12,8 @@
+ from training.train_fcm import train_fcm_model
+ 
+ app = Flask(__name__)
+-app.secret_key = 'fgr-secret-key'
++app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(32)
++CSRFProtect(app)
+ UPLOAD_FOLDER = 'data/uploads'
+ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+                         
+@@ -48,8 +51,9 @@
+     if request.method == 'POST':
+         file = request.files['file']
+         model = request.form['model']
+-        if file.filename.endswith('.xlsx'):
+-            filepath = os.path.join(UPLOAD_FOLDER, file.filename)
++        filename = secure_filename(file.filename or '')
++        if filename.lower().endswith('.xlsx'):
++            filepath = os.path.join(UPLOAD_FOLDER, filename)
+             file.save(filepath)
+             results = predict_from_batch(filepath, model)
+             return render_template('predict_batch.html', results=results)
+diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=CORRECCIONES_SONARQUBE.md' '--exclude=.gitignore' antes/cambios_antes_despues.diff "proyecto/Proyecto definitivo_ANALITICA DE DATOS/cambios_antes_despues.diff"
+--- a/cambios_antes_despues.diff	1970-01-01 00:00:00.000000000 +0000
++++ "proyecto/Proyecto definitivo_ANALITICA DE DATOS/cambios_antes_despues.diff"	2026-10-30 12:29:21.079748969 +0000
+@@ -0,0 +1,33 @@
++diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=CORRECCIONES_SONARQUBE.md' '--exclude=.gitignore' antes/app.py "proyecto/Proyecto definitivo_ANALITICA DE DATOS/app.py"
++--- antes/app.py	2026-10-30 12:28:52.267334509 +0000
+++++ "proyecto/Proyecto definitivo_ANALITICA DE DATOS/app.py"	2026-10-30 12:28:55.004576944 +0000
++@@ -1,5 +1,7 @@
++ # app.py
++ from flask import Flask, render_template, request, redirect, url_for, flash
+++from flask_wtf.csrf import CSRFProtect
+++from werkzeug.utils import secure_filename
++ import os
++ 
++ from prediction.predict_individual import predict_single_input
++@@ -10,7 +12,8 @@
++ from training.train_fcm import train_fcm_model
++ 
++ app = Flask(__name__)
++-app.secret_key = 'fgr-secret-key'
+++app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(32)
+++CSRFProtect(app)
++ UPLOAD_FOLDER = 'data/uploads'
++ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
++                         
++@@ -48,8 +51,9 @@
++     if request.method == 'POST':
++         file = request.files['file']
++         model = request.form['model']
++-        if file.filename.endswith('.xlsx'):
++-            filepath = os.path.join(UPLOAD_FOLDER, file.filename)
+++        filename = secure_filename(file.filename or '')
+++        if filename.lower().endswith('.xlsx'):
+++            filepath = os.path.join(UPLOAD_FOLDER, filename)
++             file.save(filepath)
++             results = predict_from_batch(filepath, model)
++             return render_template('predict_batch.html', results=results)
+diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=CORRECCIONES_SONARQUBE.md' '--exclude=.gitignore' antes/requirements.txt "proyecto/Proyecto definitivo_ANALITICA DE DATOS/requirements.txt"
+--- a/requirements.txt	2026-10-30 12:28:54.891873072 +0000
++++ "proyecto/Proyecto definitivo_ANALITICA DE DATOS/requirements.txt"	2026-10-30 12:28:55.004929071 +0000
+@@ -4,4 +4,5 @@
+ openpyxl
+ joblib
+ matplotlib
+-seaborn
+\ No newline at end of file
++seaborn
++Flask-WTF
+diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=CORRECCIONES_SONARQUBE.md' '--exclude=.gitignore' antes/static/style.css "proyecto/Proyecto definitivo_ANALITICA DE DATOS/static/style.css"
+--- a/static/style.css	2026-10-30 12:28:54.893199469 +0000
++++ "proyecto/Proyecto definitivo_ANALITICA DE DATOS/static/style.css"	2026-10-30 12:28:55.005243278 +0000
+@@ -169,19 +169,19 @@
+  .alert-success {
+     background-color: var(--alert-success-bg);
+     color: var(--alert-success-text);
+-    border: 1px solid darken(var(--alert-success-bg), 10%);
++    border: 1px solid #c3e6cb;
+ }
+ 
+  .alert-danger {
+     background-color: var(--alert-danger-bg);
+     color: var(--alert-danger-text);
+-    border: 1px solid darken(var(--alert-danger-bg), 10%);
++    border: 1px solid #f5c6cb;
+ }
+ 
+  .alert-info {
+     background-color: var(--alert-info-bg);
+     color: var(--alert-info-text);
+-    border: 1px solid darken(var(--alert-info-bg), 10%);
++    border: 1px solid #bee5eb;
+ }
+ 
+  /* Cards */
+diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=CORRECCIONES_SONARQUBE.md' '--exclude=.gitignore' antes/templates/predict_batch.html "proyecto/Proyecto definitivo_ANALITICA DE DATOS/templates/predict_batch.html"
+--- a/templates/predict_batch.html	2026-10-30 12:28:54.893355386 +0000
++++ "proyecto/Proyecto definitivo_ANALITICA DE DATOS/templates/predict_batch.html"	2026-10-30 12:29:00.867198858 +0000
+@@ -2,8 +2,9 @@
+ {% block content %}
+ <h2>Predicción por Lotes</h2>
+ <form method="POST" enctype="multipart/form-data">
++    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+     <label for="model">Modelo:</label>
+-    <select name="model">
++    <select name="model" id="model">
+         <option value="logistic_regression">Regresión Logística</option>
+         <option value="svm">SVM</option>
+         <option value="ann">Red Neuronal</option>
+@@ -11,7 +12,7 @@
+     </select><br><br>
+ 
+     <label for="file">Archivo (.xlsx):</label>
+-    <input type="file" name="file" accept=".xlsx" required><br><br>
++    <input type="file" id="file" name="file" accept=".xlsx" required><br><br>
+ 
+     <button type="submit">Subir y Predecir</button>
+ </form>
+diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=CORRECCIONES_SONARQUBE.md' '--exclude=.gitignore' antes/templates/predict_individual.html "proyecto/Proyecto definitivo_ANALITICA DE DATOS/templates/predict_individual.html"
+--- a/templates/predict_individual.html	2026-10-30 12:28:54.893383327 +0000
++++ "proyecto/Proyecto definitivo_ANALITICA DE DATOS/templates/predict_individual.html"	2026-10-30 12:29:00.866267185 +0000
+@@ -3,74 +3,75 @@
+ <h2>Predicción Individual</h2>
+ <p><strong>Instrucciones:</strong> Por favor, ingresa valores válidos en cada campo.</p>
+ <form method="POST">
++    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+     <label for="model">Modelo:</label>
+-    <select name="model">
++    <select name="model" id="model">
+         <option value="logistic_regression">Regresión Logística</option>
+         <option value="svm">SVM</option>
+         <option value="ann">Red Neuronal</option>
+         <option value="fcm">FCM</option>
+     </select><br><br>
+ 
+-    <label>C1 - Edad de la madre (15 a 50 años):</label>
+-    <input type="number" name="C1" required><br>
+-    <label>C2 - Índice de masa corporal (15 a 40):</label>s
+-    <input type="number" step="any" name="C2" required><br>
+-    <label>C3 - Edad gestacional al parto (20 a 42 semanas):</label>
+-    <input type="number" step="any" name="C3" required><br>
+-    <label>C4 - Número de embarazos (1 a 10):</label>
+-    <input type="number" name="C4" required><br>
+-    <label>C5 - Número de partos previos (0 a 10):</label>
+-    <input type="number" name="C5" required><br>
+-    <label>C6 - Síntoma inicial (0=Edema, 1=Hipertensión, 2=FGR):</label>
+-    <input type="number" name="C6" required><br>
+-    <label>C7 - Edad gestacional de aparición de síntomas iniciales (20 a 40):</label>
+-    <input type="number" step="any" name="C7" required><br>
+-    <label>C8 - Días entre IOS y parto (0 a 100):</label>
+-    <input type="number" step="any" name="C8" required><br>
+-    <label>C9 - Edad gestacional de inicio de hipertensión (20 a 40):</label>
+-    <input type="number" step="any" name="C9" required><br>
+-    <label>C10 - Días entre hipertensión y parto (0 a 100):</label>
+-    <input type="number" step="any" name="C10" required><br>
+-    <label>C11 - Edad gestacional de inicio de edema (20 a 40):</label>
+-    <input type="number" step="any" name="C11" required><br>
+-    <label>C12 - Días entre edema y parto (0 a 100):</label>
+-    <input type="number" step="any" name="C12" required><br>
+-    <label>C13 - Edad gestacional de inicio de proteinuria (20 a 40):</label>
+-    <input type="number" step="any" name="C13" required><br>
+-    <label>C14 - Días entre proteinuria y parto (0 a 100):</label>
+-    <input type="number" step="any" name="C14" required><br>
+-    <label>C15 - Tratamiento expectante (0=No, 1=Sí):</label>
+-    <input type="number" name="C15" required><br>
+-    <label>C16 - Terapia antihipertensiva antes de hospitalización (0=No, 1=Sí):</label>
+-    <input type="number" name="C16" required><br>
+-    <label>C17 - Historial médico (0=No, 1=Hipertensión, 2=SOP):</label>
+-    <input type="number" name="C17" required><br>
+-    <label>C18 - Presión sistólica máxima (90 a 200 mmHg):</label>
+-    <input type="number" name="C18" required><br>
+-    <label>C19 - Presión diastólica máxima (60 a 130 mmHg):</label>
+-    <input type="number" name="C19" required><br>
+-    <label>C20 - Motivo del parto (0=HELLP, 1=Distress fetal, 2=Disfunción orgánica, 3=HTA no controlada, 4=Edema, 5=FGR):</label>
+-    <input type="number" name="C20" required><br>
+-    <label>C21 - Modo de parto (0=Cesárea, 1=Parto vaginal):</label>
+-    <input type="number" name="C21" required><br>
+-    <label>C22 - Valor máximo de BNP (0 a 500 pg/mL):</label>
+-    <input type="number" step="any" name="C22" required><br>
+-    <label>C23 - Creatinina máxima (0.5 a 2.0 mg/dL):</label>
+-    <input type="number" step="any" name="C23" required><br>
+-    <label>C24 - Ácido úrico máximo (3.0 a 10.0 mg/dL):</label>
+-    <input type="number" step="any" name="C24" required><br>
+-    <label>C25 - Proteinuria máxima (0.1 a 10.0 g/24h):</label>
+-    <input type="number" step="any" name="C25" required><br>
+-    <label>C26 - Proteína total máxima (3.0 a 8.0 g/dL):</label>
+-    <input type="number" step="any" name="C26" required><br>
+-    <label>C27 - Albúmina máxima (2.0 a 5.0 g/dL):</label>
+-    <input type="number" step="any" name="C27" required><br>
+-    <label>C28 - ALT máxima (5 a 100 U/L):</label>
+-    <input type="number" step="any" name="C28" required><br>
+-    <label>C29 - AST máxima (5 a 100 U/L):</label>
+-    <input type="number" step="any" name="C29" required><br>
+-    <label>C30 - Plaquetas máximas (100000 a 500000 /μL):</label>
+-    <input type="number" step="any" name="C30" required><br><br>
++    <label for="C1">C1 - Edad de la madre (15 a 50 años):</label>
++    <input type="number" id="C1" name="C1" required><br>
++    <label for="C2">C2 - Índice de masa corporal (15 a 40):</label>
++    <input type="number" step="any" id="C2" name="C2" required><br>
++    <label for="C3">C3 - Edad gestacional al parto (20 a 42 semanas):</label>
++    <input type="number" step="any" id="C3" name="C3" required><br>
++    <label for="C4">C4 - Número de embarazos (1 a 10):</label>
++    <input type="number" id="C4" name="C4" required><br>
++    <label for="C5">C5 - Número de partos previos (0 a 10):</label>
++    <input type="number" id="C5" name="C5" required><br>
++    <label for="C6">C6 - Síntoma inicial (0=Edema, 1=Hipertensión, 2=FGR):</label>
++    <input type="number" id="C6" name="C6" required><br>
++    <label for="C7">C7 - Edad gestacional de aparición de síntomas iniciales (20 a 40):</label>
++    <input type="number" step="any" id="C7" name="C7" required><br>
++    <label for="C8">C8 - Días entre IOS y parto (0 a 100):</label>
++    <input type="number" step="any" id="C8" name="C8" required><br>
++    <label for="C9">C9 - Edad gestacional de inicio de hipertensión (20 a 40):</label>
++    <input type="number" step="any" id="C9" name="C9" required><br>
++    <label for="C10">C10 - Días entre hipertensión y parto (0 a 100):</label>
++    <input type="number" step="any" id="C10" name="C10" required><br>
++    <label for="C11">C11 - Edad gestacional de inicio de edema (20 a 40):</label>
++    <input type="number" step="any" id="C11" name="C11" required><br>
++    <label for="C12">C12 - Días entre edema y parto (0 a 100):</label>
++    <input type="number" step="any" id="C12" name="C12" required><br>
++    <label for="C13">C13 - Edad gestacional de inicio de proteinuria (20 a 40):</label>
++    <input type="number" step="any" id="C13" name="C13" required><br>
++    <label for="C14">C14 - Días entre proteinuria y parto (0 a 100):</label>
++    <input type="number" step="any" id="C14" name="C14" required><br>
++    <label for="C15">C15 - Tratamiento expectante (0=No, 1=Sí):</label>
++    <input type="number" id="C15" name="C15" required><br>
++    <label for="C16">C16 - Terapia antihipertensiva antes de hospitalización (0=No, 1=Sí):</label>
++    <input type="number" id="C16" name="C16" required><br>
++    <label for="C17">C17 - Historial médico (0=No, 1=Hipertensión, 2=SOP):</label>
++    <input type="number" id="C17" name="C17" required><br>
++    <label for="C18">C18 - Presión sistólica máxima (90 a 200 mmHg):</label>
++    <input type="number" id="C18" name="C18" required><br>
++    <label for="C19">C19 - Presión diastólica máxima (60 a 130 mmHg):</label>
++    <input type="number" id="C19" name="C19" required><br>
++    <label for="C20">C20 - Motivo del parto (0=HELLP, 1=Distress fetal, 2=Disfunción orgánica, 3=HTA no controlada, 4=Edema, 5=FGR):</label>
++    <input type="number" id="C20" name="C20" required><br>
++    <label for="C21">C21 - Modo de parto (0=Cesárea, 1=Parto vaginal):</label>
++    <input type="number" id="C21" name="C21" required><br>
++    <label for="C22">C22 - Valor máximo de BNP (0 a 500 pg/mL):</label>
++    <input type="number" step="any" id="C22" name="C22" required><br>
++    <label for="C23">C23 - Creatinina máxima (0.5 a 2.0 mg/dL):</label>
++    <input type="number" step="any" id="C23" name="C23" required><br>
++    <label for="C24">C24 - Ácido úrico máximo (3.0 a 10.0 mg/dL):</label>
++    <input type="number" step="any" id="C24" name="C24" required><br>
++    <label for="C25">C25 - Proteinuria máxima (0.1 a 10.0 g/24h):</label>
++    <input type="number" step="any" id="C25" name="C25" required><br>
++    <label for="C26">C26 - Proteína total máxima (3.0 a 8.0 g/dL):</label>
++    <input type="number" step="any" id="C26" name="C26" required><br>
++    <label for="C27">C27 - Albúmina máxima (2.0 a 5.0 g/dL):</label>
++    <input type="number" step="any" id="C27" name="C27" required><br>
++    <label for="C28">C28 - ALT máxima (5 a 100 U/L):</label>
++    <input type="number" step="any" id="C28" name="C28" required><br>
++    <label for="C29">C29 - AST máxima (5 a 100 U/L):</label>
++    <input type="number" step="any" id="C29" name="C29" required><br>
++    <label for="C30">C30 - Plaquetas máximas (100000 a 500000 /μL):</label>
++    <input type="number" step="any" id="C30" name="C30" required><br><br>
+ 
+     <button type="submit">Predecir</button>
+ </form>
+diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=CORRECCIONES_SONARQUBE.md' '--exclude=.gitignore' antes/templates/training.html "proyecto/Proyecto definitivo_ANALITICA DE DATOS/templates/training.html"
+--- a/templates/training.html	2026-10-30 12:28:54.893427291 +0000
++++ "proyecto/Proyecto definitivo_ANALITICA DE DATOS/templates/training.html"	2026-10-30 12:28:55.005507507 +0000
+@@ -4,6 +4,7 @@
+         <h2>Entrenar Modelos</h2>
+         <p>Selecciona el modelo que deseas entrenar y haz clic en el botón "Entrenar". Este proceso puede tardar unos minutos.</p>
+         <form method="POST">
++            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+             <label for="model">Selecciona un modelo:</label>
+             <select name="model" id="model">
+                 <option value="logistic">Regresión Logística</option>

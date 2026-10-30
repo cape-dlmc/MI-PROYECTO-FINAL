@@ -169,19 +169,19 @@
  .alert-success {
     background-color: var(--alert-success-bg);
     color: var(--alert-success-text);
-    border: 1px solid darken(var(--alert-success-bg), 10%);
+    border: 1px solid #c3e6cb;
 }
 
  .alert-danger {
     background-color: var(--alert-danger-bg);
     color: var(--alert-danger-text);
-    border: 1px solid darken(var(--alert-danger-bg), 10%);
+    border: 1px solid #f5c6cb;
 }
 
  .alert-info {
     background-color: var(--alert-info-bg);
     color: var(--alert-info-text);
-    border: 1px solid darken(var(--alert-info-bg), 10%);
+    border: 1px solid #bee5eb;
 }
 
  /* Cards */
@@ -247,7 +247,3 @@
         padding: 0.75rem;
     }
  }
-
- 
-
- 
