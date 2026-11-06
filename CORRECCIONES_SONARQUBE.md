@@ -89,3 +89,10 @@ Después:
 
 - Antes de arrancar en producción define la variable `SECRET_KEY`. Si no la defines, la app genera una clave aleatoria al iniciar; sirve para desarrollo, pero las sesiones no sobreviven a un reinicio.
 - Instala dependencias con `pip install -r requirements.txt`.
+
+## Ajustes posteriores al primer envío
+
+- **Cabeceras de seguridad restauradas** en `app.py` (`add_security_headers`). La primera versión las había quitado por error. Se comprueba que la respuesta incluye `X-XSS-Protection` y `X-Content-Type-Options`.
+- **Flujo de trabajo de SonarCloud** (`.github/workflows/sonarcloud.yml`) reescrito para ejecutarse en `ubuntu-latest` con la acción oficial `SonarSource/sonarqube-scan-action`. Requiere el secreto `SONAR_TOKEN` en GitHub (Settings > Secrets and variables > Actions).
+- **`sonar-project.properties`** con la clave del proyecto (`cape-dlmc_MI-PROYECTO-FINAL`) y la organización (`cape-dlmc`).
+- En SonarCloud, el análisis automático debe estar **desactivado** (Administration > Analysis Method), porque el análisis se hace desde GitHub Actions.

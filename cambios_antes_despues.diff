@@ -1,5 +1,142 @@
+--- a/.github/workflows/sonarcloud.yml	1970-01-01 00:00:00.000000000 +0000
++++ "proyecto/Proyecto definitivo_ANALITICA DE DATOS/.github/workflows/sonarcloud.yml"	2026-11-06 13:52:33.906458203 +0000
+@@ -0,0 +1,24 @@
++name: SonarCloud
++
++on:
++  push:
++    branches:
++      - master
++  pull_request:
++    types: [opened, synchronize, reopened]
++
++jobs:
++  build:
++    name: Build and analyze
++    runs-on: ubuntu-latest
++    steps:
++      - name: Checkout
++        uses: actions/checkout@v4
++        with:
++          fetch-depth: 0
++
++      - name: SonarCloud scan
++        uses: SonarSource/sonarqube-scan-action@v5
++        env:
++          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
++          SONAR_HOST_URL: https://sonarcloud.io
+diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=cambios_antes_despues.diff' antes/.gitignore "proyecto/Proyecto definitivo_ANALITICA DE DATOS/.gitignore"
+--- a/.gitignore	1970-01-01 00:00:00.000000000 +0000
++++ "proyecto/Proyecto definitivo_ANALITICA DE DATOS/.gitignore"	2026-10-30 12:29:00.868242155 +0000
+@@ -0,0 +1,3 @@
++env/
++__pycache__/
++*.pyc
+diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=cambios_antes_despues.diff' antes/CORRECCIONES_SONARQUBE.md "proyecto/Proyecto definitivo_ANALITICA DE DATOS/CORRECCIONES_SONARQUBE.md"
+--- a/CORRECCIONES_SONARQUBE.md	1970-01-01 00:00:00.000000000 +0000
++++ "proyecto/Proyecto definitivo_ANALITICA DE DATOS/CORRECCIONES_SONARQUBE.md"	2026-11-06 13:52:45.807517106 +0000
+@@ -0,0 +1,98 @@
++# Correcciones de seguridad y calidad (SonarQube Cloud)
++
++Proyecto: MI-PROYECTO-FINAL · Análisis de SonarQube Cloud sobre la rama `master`.
++
++## Tabla de vulnerabilidades corregidas
++
++| # | Archivo | Tipo de vulnerabilidad | Gravedad | Regla | Corrección aplicada |
++|---|---------|------------------------|----------|-------|---------------------|
++| 1 | `app.py` (`predict_batch`) | Path Traversal: el nombre del archivo subido se unía directamente a la ruta de guardado | Security / Blocker | pythonsecurity:S2083 | Se usa `secure_filename()` de `werkzeug.utils` antes de construir la ruta |
++| 2 | `static/style.css` (líneas 172, 178, 184) | Función CSS desconocida `darken()`: el borde no se aplica | Reliability / Blocker | css:S9448 | Se reemplaza por colores de borde fijos (`#c3e6cb`, `#f5c6cb`, `#bee5eb`) |
++| 3 | `app.py` (línea 13) | Clave secreta escrita en el código (`'fgr-secret-key'`) | Security | Hotspot | La clave se lee de la variable de entorno `SECRET_KEY`; si no existe se genera aleatoria |
++| 4 | `app.py` (línea 16) | Protección CSRF ausente (hotspot "Make sure disabling CSRF protection is safe here") | Security / High | python:S4502 | Se activa `CSRFProtect(app)` y se añade el token `csrf_token` a todos los formularios POST |
++| 5 | `templates/predict_batch.html` | `<select>`, `<input type="file">` sin `id` ni asociación con su `<label>` | Reliability / Medium | Web:InputWithoutLabelCheck | Se añaden `id` y `for` coincidentes |
++| 6 | `templates/predict_individual.html` | Los 30 campos numéricos y el `<select>` sin `id` ni asociación con su `<label>` | Reliability / Medium | Web:InputWithoutLabelCheck | Se añade `id="Cn"` a cada campo y `for="Cn"` a cada `<label>` |
++
++Error adicional detectado en la revisión: `predict_individual.html` tenía una letra "s" suelta después del label de C2. Se eliminó.
++
++## Antes y después
++
++### 1. Path Traversal (`app.py`)
++
++Antes:
++```python
++if file.filename.endswith('.xlsx'):
++    filepath = os.path.join(UPLOAD_FOLDER, file.filename)
++```
++
++Después:
++```python
++filename = secure_filename(file.filename or '')
++if filename.lower().endswith('.xlsx'):
++    filepath = os.path.join(UPLOAD_FOLDER, filename)
++```
++
++### 2. CSS con función inválida (`static/style.css`)
++
++Antes:
++```css
++border: 1px solid darken(var(--alert-success-bg), 10%);
++```
++
++Después:
++```css
++border: 1px solid #c3e6cb;
++```
++
++### 3 y 4. Clave secreta y CSRF (`app.py`)
++
++Antes:
++```python
++app.secret_key = 'fgr-secret-key'
++```
++
++Después:
++```python
++from flask_wtf.csrf import CSRFProtect
++app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(32)
++CSRFProtect(app)
++```
++
++En cada formulario POST se añade:
++```html
++<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
++```
++
++Dependencia nueva en `requirements.txt`: `Flask-WTF`.
++
++### 5 y 6. Accesibilidad de formularios
++
++Antes:
++```html
++<label>C1 - Edad de la madre (15 a 50 años):</label>
++<input type="number" name="C1" required>
++```
++
++Después:
++```html
++<label for="C1">C1 - Edad de la madre (15 a 50 años):</label>
++<input type="number" id="C1" name="C1" required>
++```
++
++## Verificación local
++
++- La aplicación arranca y las rutas `/`, `/training`, `/predict_individual` y `/predict_batch` responden 200.
++- Un POST sin token CSRF responde 400, por lo que la protección está activa.
++- `secure_filename('../../evil.xlsx')` devuelve `evil.xlsx`, así que la ruta ya no puede salir de `data/uploads`.
++
++## Notas para ejecutar
++
++- Antes de arrancar en producción define la variable `SECRET_KEY`. Si no la defines, la app genera una clave aleatoria al iniciar; sirve para desarrollo, pero las sesiones no sobreviven a un reinicio.
++- Instala dependencias con `pip install -r requirements.txt`.
++
++## Ajustes posteriores al primer envío
++
++- **Cabeceras de seguridad restauradas** en `app.py` (`add_security_headers`). La primera versión las había quitado por error. Se comprueba que la respuesta incluye `X-XSS-Protection` y `X-Content-Type-Options`.
++- **Flujo de trabajo de SonarCloud** (`.github/workflows/sonarcloud.yml`) reescrito para ejecutarse en `ubuntu-latest` con la acción oficial `SonarSource/sonarqube-scan-action`. Requiere el secreto `SONAR_TOKEN` en GitHub (Settings > Secrets and variables > Actions).
++- **`sonar-project.properties`** con la clave del proyecto (`cape-dlmc_MI-PROYECTO-FINAL`) y la organización (`cape-dlmc`).
++- En SonarCloud, el análisis automático debe estar **desactivado** (Administration > Analysis Method), porque el análisis se hace desde GitHub Actions.
+diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=cambios_antes_despues.diff' antes/app.py "proyecto/Proyecto definitivo_ANALITICA DE DATOS/app.py"
 --- a/app.py	2026-10-30 12:28:52.267334509 +0000
-+++ "proyecto/Proyecto definitivo_ANALITICA DE DATOS/app.py"	2026-10-30 12:28:55.004576944 +0000
++++ "proyecto/Proyecto definitivo_ANALITICA DE DATOS/app.py"	2026-11-06 13:52:33.900456073 +0000
 @@ -1,5 +1,7 @@
  # app.py
  from flask import Flask, render_template, request, redirect, url_for, flash
@@ -8,17 +145,26 @@
  import os
  
  from prediction.predict_individual import predict_single_input
-@@ -10,7 +12,8 @@
+@@ -10,7 +12,17 @@
  from training.train_fcm import train_fcm_model
  
  app = Flask(__name__)
 -app.secret_key = 'fgr-secret-key'
 +app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(32)
 +CSRFProtect(app)
++
++# ---- Security Headers ----
++@app.after_request
++def add_security_headers(response):
++    response.headers["X-XSS-Protection"] = "1; mode=block"
++    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
++    response.headers["Expect-CT"] = "enforce; max-age=86400"
++    response.headers["X-Content-Type-Options"] = "nosniff"
++    return response
  UPLOAD_FOLDER = 'data/uploads'
  os.makedirs(UPLOAD_FOLDER, exist_ok=True)
                          
-@@ -48,8 +51,9 @@
+@@ -48,8 +60,9 @@
      if request.method == 'POST':
          file = request.files['file']
          model = request.form['model']
@@ -30,44 +176,7 @@
              file.save(filepath)
              results = predict_from_batch(filepath, model)
              return render_template('predict_batch.html', results=results)
-diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=CORRECCIONES_SONARQUBE.md' '--exclude=.gitignore' antes/cambios_antes_despues.diff "proyecto/Proyecto definitivo_ANALITICA DE DATOS/cambios_antes_despues.diff"
---- a/cambios_antes_despues.diff	1970-01-01 00:00:00.000000000 +0000
-+++ "proyecto/Proyecto definitivo_ANALITICA DE DATOS/cambios_antes_despues.diff"	2026-10-30 12:29:21.079748969 +0000
-@@ -0,0 +1,33 @@
-+diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=CORRECCIONES_SONARQUBE.md' '--exclude=.gitignore' antes/app.py "proyecto/Proyecto definitivo_ANALITICA DE DATOS/app.py"
-+--- antes/app.py	2026-10-30 12:28:52.267334509 +0000
-++++ "proyecto/Proyecto definitivo_ANALITICA DE DATOS/app.py"	2026-10-30 12:28:55.004576944 +0000
-+@@ -1,5 +1,7 @@
-+ # app.py
-+ from flask import Flask, render_template, request, redirect, url_for, flash
-++from flask_wtf.csrf import CSRFProtect
-++from werkzeug.utils import secure_filename
-+ import os
-+ 
-+ from prediction.predict_individual import predict_single_input
-+@@ -10,7 +12,8 @@
-+ from training.train_fcm import train_fcm_model
-+ 
-+ app = Flask(__name__)
-+-app.secret_key = 'fgr-secret-key'
-++app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(32)
-++CSRFProtect(app)
-+ UPLOAD_FOLDER = 'data/uploads'
-+ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-+                         
-+@@ -48,8 +51,9 @@
-+     if request.method == 'POST':
-+         file = request.files['file']
-+         model = request.form['model']
-+-        if file.filename.endswith('.xlsx'):
-+-            filepath = os.path.join(UPLOAD_FOLDER, file.filename)
-++        filename = secure_filename(file.filename or '')
-++        if filename.lower().endswith('.xlsx'):
-++            filepath = os.path.join(UPLOAD_FOLDER, filename)
-+             file.save(filepath)
-+             results = predict_from_batch(filepath, model)
-+             return render_template('predict_batch.html', results=results)
-diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=CORRECCIONES_SONARQUBE.md' '--exclude=.gitignore' antes/requirements.txt "proyecto/Proyecto definitivo_ANALITICA DE DATOS/requirements.txt"
+diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=cambios_antes_despues.diff' antes/requirements.txt "proyecto/Proyecto definitivo_ANALITICA DE DATOS/requirements.txt"
 --- a/requirements.txt	2026-10-30 12:28:54.891873072 +0000
 +++ "proyecto/Proyecto definitivo_ANALITICA DE DATOS/requirements.txt"	2026-10-30 12:28:55.004929071 +0000
 @@ -4,4 +4,5 @@
@@ -78,7 +187,17 @@ diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=CORRECCIONES_SONARQ
 \ No newline at end of file
 +seaborn
 +Flask-WTF
-diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=CORRECCIONES_SONARQUBE.md' '--exclude=.gitignore' antes/static/style.css "proyecto/Proyecto definitivo_ANALITICA DE DATOS/static/style.css"
+diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=cambios_antes_despues.diff' antes/sonar-project.properties "proyecto/Proyecto definitivo_ANALITICA DE DATOS/sonar-project.properties"
+--- a/sonar-project.properties	1970-01-01 00:00:00.000000000 +0000
++++ "proyecto/Proyecto definitivo_ANALITICA DE DATOS/sonar-project.properties"	2026-11-06 13:52:33.907757549 +0000
+@@ -0,0 +1,6 @@
++sonar.projectKey=cape-dlmc_MI-PROYECTO-FINAL
++sonar.organization=cape-dlmc
++sonar.projectName=MI-PROYECTO-FINAL
++sonar.sources=.
++sonar.exclusions=env/**,**/__pycache__/**,data/**
++sonar.sourceEncoding=UTF-8
+diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=cambios_antes_despues.diff' antes/static/style.css "proyecto/Proyecto definitivo_ANALITICA DE DATOS/static/style.css"
 --- a/static/style.css	2026-10-30 12:28:54.893199469 +0000
 +++ "proyecto/Proyecto definitivo_ANALITICA DE DATOS/static/style.css"	2026-10-30 12:28:55.005243278 +0000
 @@ -169,19 +169,19 @@
@@ -104,7 +223,7 @@ diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=CORRECCIONES_SONARQ
  }
  
   /* Cards */
-diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=CORRECCIONES_SONARQUBE.md' '--exclude=.gitignore' antes/templates/predict_batch.html "proyecto/Proyecto definitivo_ANALITICA DE DATOS/templates/predict_batch.html"
+diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=cambios_antes_despues.diff' antes/templates/predict_batch.html "proyecto/Proyecto definitivo_ANALITICA DE DATOS/templates/predict_batch.html"
 --- a/templates/predict_batch.html	2026-10-30 12:28:54.893355386 +0000
 +++ "proyecto/Proyecto definitivo_ANALITICA DE DATOS/templates/predict_batch.html"	2026-10-30 12:29:00.867198858 +0000
 @@ -2,8 +2,9 @@
@@ -127,7 +246,7 @@ diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=CORRECCIONES_SONARQ
  
      <button type="submit">Subir y Predecir</button>
  </form>
-diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=CORRECCIONES_SONARQUBE.md' '--exclude=.gitignore' antes/templates/predict_individual.html "proyecto/Proyecto definitivo_ANALITICA DE DATOS/templates/predict_individual.html"
+diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=cambios_antes_despues.diff' antes/templates/predict_individual.html "proyecto/Proyecto definitivo_ANALITICA DE DATOS/templates/predict_individual.html"
 --- a/templates/predict_individual.html	2026-10-30 12:28:54.893383327 +0000
 +++ "proyecto/Proyecto definitivo_ANALITICA DE DATOS/templates/predict_individual.html"	2026-10-30 12:29:00.866267185 +0000
 @@ -3,74 +3,75 @@
@@ -267,7 +386,7 @@ diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=CORRECCIONES_SONARQ
  
      <button type="submit">Predecir</button>
  </form>
-diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=CORRECCIONES_SONARQUBE.md' '--exclude=.gitignore' antes/templates/training.html "proyecto/Proyecto definitivo_ANALITICA DE DATOS/templates/training.html"
+diff -ruN '--exclude=env' '--exclude=__pycache__' '--exclude=cambios_antes_despues.diff' antes/templates/training.html "proyecto/Proyecto definitivo_ANALITICA DE DATOS/templates/training.html"
 --- a/templates/training.html	2026-10-30 12:28:54.893427291 +0000
 +++ "proyecto/Proyecto definitivo_ANALITICA DE DATOS/templates/training.html"	2026-10-30 12:28:55.005507507 +0000
 @@ -4,6 +4,7 @@
