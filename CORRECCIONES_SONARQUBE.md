@@ -93,6 +93,15 @@ Después:
 ## Ajustes posteriores al primer envío
 
 - **Cabeceras de seguridad restauradas** en `app.py` (`add_security_headers`). La primera versión las había quitado por error. Se comprueba que la respuesta incluye `X-XSS-Protection` y `X-Content-Type-Options`.
-- **Flujo de trabajo de SonarCloud** (`.github/workflows/sonarcloud.yml`) reescrito para ejecutarse en `ubuntu-latest` con la acción oficial `SonarSource/sonarqube-scan-action`. Requiere el secreto `SONAR_TOKEN` en GitHub (Settings > Secrets and variables > Actions).
+- **Flujo de trabajo de SonarCloud** (`.github/workflows/sonarcloud.yml`) ejecutado en `ubuntu-latest` con la acción oficial fijada a una versión concreta. Comprueba que exista `SONAR_TOKEN` antes de iniciar el análisis y permite reejecutarlo manualmente desde GitHub Actions.
 - **`sonar-project.properties`** con la clave del proyecto (`cape-dlmc_MI-PROYECTO-FINAL`) y la organización (`cape-dlmc`).
 - En SonarCloud, el análisis automático debe estar **desactivado** (Administration > Analysis Method), porque el análisis se hace desde GitHub Actions.
+
+## Requisito para reactivar el análisis de SonarCloud
+
+La ejecución de GitHub Actions del 6 de noviembre de 2026 terminó antes de analizar el código: el registro muestra `SONAR_TOKEN` vacío y el error `Not authorized or organization not found`. Esto es un problema de autenticación/configuración, no un resultado de calidad del código.
+
+1. En SonarCloud, abre la cuenta con permiso **Execute Analysis** para `cape-dlmc_MI-PROYECTO-FINAL` y genera un token de usuario en **My Account > Security**. No lo guardes en el repositorio ni lo compartas en el chat.
+2. En GitHub, abre `cape-dlmc/MI-PROYECTO-FINAL` > **Settings > Secrets and variables > Actions > New repository secret**. Usa el nombre exacto `SONAR_TOKEN` y pega ahí el token.
+3. Confirma que el proyecto de SonarCloud pertenece a la organización `cape-dlmc`, que su project key es `cape-dlmc_MI-PROYECTO-FINAL`, y que **Automatic Analysis** está desactivado.
+4. Después de guardar el secreto, abre **Actions > SonarCloud > Run workflow** para `master`, o haz un nuevo push. El paso de validación ahora informa claramente si falta el secreto; el análisis solo puede completarse con un token válido.
