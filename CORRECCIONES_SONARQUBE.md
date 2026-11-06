@@ -99,9 +99,9 @@ Después:
 
 ## Requisito para reactivar el análisis de SonarCloud
 
-La ejecución de GitHub Actions del 6 de noviembre de 2026 terminó antes de analizar el código: el registro muestra `SONAR_TOKEN` vacío y el error `Not authorized or organization not found`. Esto es un problema de autenticación/configuración, no un resultado de calidad del código.
+La ejecución inicial de GitHub Actions del 6 de noviembre de 2026 terminó antes de analizar el código: el registro muestra `SONAR_TOKEN` vacío y el error `Not authorized or organization not found`. Después de agregar el secreto, la validación del token pasó; la ejecución más reciente terminó con `You are running CI analysis while Automatic Analysis is enabled`. Ninguna de estas ejecuciones produjo un análisis de calidad del código.
 
 1. En SonarCloud, abre la cuenta con permiso **Execute Analysis** para `cape-dlmc_MI-PROYECTO-FINAL` y genera un token de usuario en **My Account > Security**. No lo guardes en el repositorio ni lo compartas en el chat.
 2. En GitHub, abre `cape-dlmc/MI-PROYECTO-FINAL` > **Settings > Secrets and variables > Actions > New repository secret**. Usa el nombre exacto `SONAR_TOKEN` y pega ahí el token.
-3. Confirma que el proyecto de SonarCloud pertenece a la organización `cape-dlmc`, que su project key es `cape-dlmc_MI-PROYECTO-FINAL`, y que **Automatic Analysis** está desactivado.
+3. En SonarCloud, abre el proyecto > **Administration > Analysis Method** y desactiva **Automatic Analysis**. SonarCloud no permite combinar el análisis automático con este análisis basado en CI. Confirma también la organización `cape-dlmc` y el project key `cape-dlmc_MI-PROYECTO-FINAL`.
 4. Después de guardar el secreto, abre **Actions > SonarCloud > Run workflow** para `master`, o haz un nuevo push. El paso de validación ahora informa claramente si falta el secreto; el análisis solo puede completarse con un token válido.
